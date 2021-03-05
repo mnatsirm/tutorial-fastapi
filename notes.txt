@@ -9,3 +9,7 @@
 3. access interactive API docs
     --> Swagger: http://127.0.0.1:8000/docs
     --> ReDoc: http://127.0.0.1:8000/redoc
+
+4. Path operations are evaluated in order. E.g make sure /users/me is declared before /users/{user_id}.
+    Otherwise, the path for /users/{user_id} would match also for /users/me, 
+    thinking that it's receving a parameter user_id with a value of "me".

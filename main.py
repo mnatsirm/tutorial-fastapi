@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from enum import Enum
+from typing import Optional
 
 class ModelName(str, Enum):
     alexnet = "alexnet"
@@ -14,8 +15,17 @@ async def root():
     return {"message": "Hello World"}
 
 @app.get("/items/{item_id}")
-async def get_item(item_id: int):
-    return {"item_id": item_id}
+async def get_item(
+    item_id: str, is_fresh: bool, discount: int = 0, limit: Optional[int] = None
+):
+    item = {
+        "item_id": item_id,
+        "discount": discount,
+        "is_fresh": is_fresh,
+        "limit": limit
+    }
+
+    return item
 
 @app.get("/users/me")
 async def get_user_me():

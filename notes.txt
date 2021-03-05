@@ -1,10 +1,11 @@
-run the live server:
+1. run the live server:
     uvicorn main:app --reload
     --> main refer to main.py file
     --> app is instance of class FastAPI
     
-    --> shows url where the app is being served
-        --> http://127.0.0.1:8000
-    --> access interactive API docs
-        --> Swagger: http://127.0.0.1:8000/docs
-        --> ReDoc: http://127.0.0.1:8000/redoc
+2. url where the app is being served
+    --> http://127.0.0.1:8000
+
+3. access interactive API docs
+    --> Swagger: http://127.0.0.1:8000/docs
+    --> ReDoc: http://127.0.0.1:8000/redoc

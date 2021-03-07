@@ -70,3 +70,93 @@ async def get_model(model_name: ModelName):
         "model_name": model_name,
         "message": "Have some residuals"
     }
+
+"""
+    Query Parameter and String Validations
+    ######################################
+
+    from typing import Optional
+    from fastapi import FastAPI, Query
+
+    app = FastAPI()
+    @app.get("/items/")
+    async def get_items(q: Optional[str] = None):
+        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+        if q:
+            results.update({"q": q})
+        return results
+
+    1. Here q is not required query parameter type str with default value none.
+    Eventhough q is optional, whenever it is provided we can add some validation, 
+        e.g min length, max length.
+    
+    The code becomes:
+    @app.get("/items/")
+    async def read_items(q: Optional[str] = Query(None, min_length=3, max_length=50)):
+        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+        if q:
+            results.update({"q": q})
+        return results
+
+    2. Now we can also add regex.
+    The code becomes:
+    @app.get("/items/")
+    async def read_items(
+        q: Optional[str] = Query(None, min_length=3, max_length=50, regex="^fixedquery$")
+    ):
+        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+        if q:
+            results.update({"q": q})
+        return results
+
+    3. Query still optional but we can add default value.
+    The code becomes:
+    @app.get("/items/")
+    async def read_items(q: str = Query("fixedquery", min_length=3)):
+        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+        if q:
+            results.update({"q": q})
+        return results
+    
+    4. Make it required by using python Ellipsis..
+    @app.get("/items/")
+    async def read_items(q: str = Query(..., min_length=3)):
+        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+        if q:
+            results.update({"q": q})
+        return results
+    
+    5. Query parameter list / multiple values
+    EXPLICITLY use Query, otherwise it would be intepreted as a request body.
+    The code becomes:
+    @app.get("/items/")
+    async def read_items(q: Optional[List[str]] = Query(None)):
+        query_items = {"q": q}
+        return query_items
+    i.e
+    http://localhost:8000/items/?q=foo&q=bar
+    the the response to that URL would be:
+    {
+        "q": [
+            "foo",
+            "bar"
+        ]
+    }
+
+    6. Query parameter list / multiple values with default
+    
+    @app.get("/items/")
+    async def read_items(q: List[str] = Query(["foo", "bar"])):
+        query_items = {"q": q}
+        return query_items
+    i.e
+    http://localhost:8000/items/
+    the the response to that URL would be:
+    {
+        "q": [
+            "foo",
+            "bar"
+        ]
+    }
+
+"""

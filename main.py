@@ -87,76 +87,130 @@ async def get_model(model_name: ModelName):
         return results
 
     1. Here q is not required query parameter type str with default value none.
-    Eventhough q is optional, whenever it is provided we can add some validation, 
+        Eventhough q is optional, whenever it is provided we can add some validation, 
         e.g min length, max length.
     
-    The code becomes:
-    @app.get("/items/")
-    async def read_items(q: Optional[str] = Query(None, min_length=3, max_length=50)):
-        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-        if q:
-            results.update({"q": q})
-        return results
+        The code becomes:
+            @app.get("/items/")
+            async def read_items(q: Optional[str] = Query(None, min_length=3, max_length=50)):
+                results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+                if q:
+                    results.update({"q": q})
+                return results
 
     2. Now we can also add regex.
-    The code becomes:
-    @app.get("/items/")
-    async def read_items(
-        q: Optional[str] = Query(None, min_length=3, max_length=50, regex="^fixedquery$")
-    ):
-        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-        if q:
-            results.update({"q": q})
-        return results
+        The code becomes:
+            @app.get("/items/")
+            async def read_items(
+                q: Optional[str] = Query(None, min_length=3, max_length=50, regex="^fixedquery$")
+            ):
+                results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+                if q:
+                    results.update({"q": q})
+                return results
 
     3. Query still optional but we can add default value.
-    The code becomes:
-    @app.get("/items/")
-    async def read_items(q: str = Query("fixedquery", min_length=3)):
-        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-        if q:
-            results.update({"q": q})
-        return results
+        The code becomes:
+            @app.get("/items/")
+            async def read_items(q: str = Query("fixedquery", min_length=3)):
+                results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+                if q:
+                    results.update({"q": q})
+                return results
     
     4. Make it required by using python Ellipsis..
-    @app.get("/items/")
-    async def read_items(q: str = Query(..., min_length=3)):
-        results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-        if q:
-            results.update({"q": q})
-        return results
+        The code becomes:
+            @app.get("/items/")
+            async def read_items(q: str = Query(..., min_length=3)):
+                results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+                if q:
+                    results.update({"q": q})
+                return results
     
     5. Query parameter list / multiple values
-    EXPLICITLY use Query, otherwise it would be intepreted as a request body.
-    The code becomes:
-    @app.get("/items/")
-    async def read_items(q: Optional[List[str]] = Query(None)):
-        query_items = {"q": q}
-        return query_items
-    i.e
-    http://localhost:8000/items/?q=foo&q=bar
-    the the response to that URL would be:
-    {
-        "q": [
-            "foo",
-            "bar"
-        ]
-    }
+        EXPLICITLY use Query, otherwise it would be intepreted as a request body.
+        The code becomes:
+        @app.get("/items/")
+        async def read_items(q: Optional[List[str]] = Query(None)):
+            query_items = {"q": q}
+            return query_items
+        i.e
+        http://localhost:8000/items/?q=foo&q=bar
+        the the response to that URL would be:
+        {
+            "q": [
+                "foo",
+                "bar"
+            ]
+        }
 
     6. Query parameter list / multiple values with default
+        The code becomes:
+            @app.get("/items/")
+            async def read_items(q: List[str] = Query(["foo", "bar"])):
+                query_items = {"q": q}
+                return query_items
+        i.e
+            URL: http://localhost:8000/items/
+        then the response to that URL would be:
+            {
+                "q": [
+                    "foo",
+                    "bar"
+                ]
+            }
     
-    @app.get("/items/")
-    async def read_items(q: List[str] = Query(["foo", "bar"])):
-        query_items = {"q": q}
-        return query_items
-    i.e
-    http://localhost:8000/items/
-    the the response to that URL would be:
-    {
-        "q": [
-            "foo",
-            "bar"
-        ]
-    }
+    #######################################
+    Path Parameters and Numeric Validations
+    #######################################
+    we can declare the same type of validations and metadata for path parameters with Path.
 
+    1. Declare metadata
+        the code:
+            from fastapi import FastAPI, Path, Query
+            from typing import Optional
+
+            app = FastAPI()
+
+            @app.get("/items/{item_id}")
+            async def read_items(
+                item_id: int = Path(..., title="The ID of the item to get"),
+                q: Optional[str] = Query(None, alias="item-query"),
+            ):
+                results = {"item_id": item_id}
+                if q:
+                    results.update({"q": q})
+                return results
+        
+        Because path parameter is always required as it has to be part of the path,
+        thats why we declare with python ellipsis (e.g ...)
+    
+    2. Order the parameters.
+        as far as i understand, FastAPI DOES NOT CARE about the order between Query, Path, etc..
+        and theres also some python tricks to overcome "value with default before value that doesnt have default",
+        BUT for readibility (to me atleast)
+        let stick with this order: PATH -- QUERY -- ETC
+
+    3. Number validations
+        ge : greater than or equal
+        le : less than or equal
+        
+        gt : greater than
+        lt : less than
+        
+        the code:
+            from fastapi import FastAPI, Path, Query
+
+            app = FastAPI()
+
+            @app.get("/items/{item_id}")
+            async def read_items(
+                item_id: int = Path(..., title="The ID of the item to get", gt=0, le=1000),
+                size: float = Query(..., gt=0, lt=10.5)
+                q: str = None,
+            ):
+                results = {"item_id": item_id}
+                if q:
+                    results.update({"q": q})
+                return results
 """

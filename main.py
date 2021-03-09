@@ -341,5 +341,42 @@ async def get_model(model_name: ModelName):
             "importance": 5
         }
 
+    4. Embed a single body parameter
+        By default, FastAPI will then expect its body directly. If we wan to expect JSON with a key, use the special Body parameter embed.
+        The code:
+            from fastapi import Body, FastAPI
+            from typing import Optional
+            from pydantic import BaseModel
 
+
+            app = FastAPI()
+
+            class Item(BaseModel):
+                name: str
+                description: Optional[str] = None
+                price: float
+                tax: Optional[float] = None
+
+
+            @app.put("/items/{item_id}")
+            async def update_item(item_id: int, item: Item = Body(..., embed=True)):
+                results = {"item_id": item_id, "item": item}
+                return results
+
+        Now FastAPI will expect a body like:
+        {
+            "item": {
+                "name": "Foo",
+                "description": "The pretender",
+                "price": 42.0,
+                "tax": 3.2
+            }
+        }
+        instead of:
+        {
+            "name": "Foo",
+            "description": "The pretender",
+            "price": 42.0,
+            "tax": 3.2
+        }
 """

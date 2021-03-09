@@ -379,4 +379,35 @@ async def get_model(model_name: ModelName):
             "price": 42.0,
             "tax": 3.2
         }
+
+    ####################################
+
+    Body - Fields
+
+    ####################################
+
+    1. Declare model attributes
+        Remember how the design Query, Path, and Body attributes made, thats is the same way with Body - Fields,
+        except its imported from pydantic instead from fastapi.
+        The code:
+            from fastapi import Body, FastAPI
+            from typing import Optional
+            from pydantic import BaseModel, Field
+
+
+            app = FastAPI()
+
+            class Item(BaseModel):
+                name: str
+                description: Optional[str] = Field(
+                    None, title="The description of the item", max_length=300
+                )
+                price: float = Field(..., gt=0, description="The price must be greater than zero")
+                tax: Optional[float] = None
+
+            @app.put("/items/{item_id}")
+            async def update_item(item_id: int, item: Item = Body(..., embed=True)):
+                results = {"item_id": item_id, "item": item}
+                return results
+
 """
